@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 interface User {
   id: string;
@@ -72,32 +72,43 @@ export class UsersController {
   }
 
 
-    @Get(":id")
-    getUsersById(@Param("id") id: string) {
+  @Get(":id")
+  getUsersById(@Param("id") id: string) {
     console.log(".:: User ID", id);
 
     const user = this.users.find((user) => user.id === id);
 
     if (user) {
-        console.log(".:: usuario buscado", user);
-        return user;
+      console.log(".:: usuario buscado", user);
+      return user;
     }
 
     return {
-        message: "Usuario no encontrado",
+      message: "Usuario no encontrado",
     };
-    }
+  }
 
-    @Get("search/:name")
-    getUsersByName(@Param("name") name: string) {
-        const user = this.users.find((user) => user.name === name);
+  @Get("search/:name")
+  getUsersByName(@Param("name") name: string) {
+    const user = this.users.find((user) => user.name === name);
     if (user) {
-        console.log(".:: usuario buscado", user);
-        return user.email;
+      console.log(".:: usuario buscado", user);
+      return user.email;
     }
     return {
-        message: "Usuario no encontrado",
+      message: "Usuario no encontrado",
     };
+  }
+
+
+  @Post()
+  crearUsuario(@Body() user: User) {
+    console.log(".:: User ID", user);
+    this.users.push(user);
+    return {
+      message: "Usuario creado exitosamente",
+      data: user,
     }
+  }
 
 }
