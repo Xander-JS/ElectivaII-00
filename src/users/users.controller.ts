@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Delete, Put } from '@nestjs/common';
 
 interface User {
   id: string;
@@ -90,25 +90,76 @@ export class UsersController {
 
   @Get("search/:name")
   getUsersByName(@Param("name") name: string) {
-    const user = this.users.find((user) => user.name === name);
+    const user = this.users.find((u) => u.name.toLowerCase() === name.toLowerCase(),);
     if (user) {
       console.log(".:: usuario buscado", user);
-      return user.email;
+      return user;
     }
     return {
       message: "Usuario no encontrado",
     };
   }
 
-
   @Post()
   crearUsuario(@Body() user: User) {
-    console.log(".:: User ID", user);
-    this.users.push(user);
+    console.log(".:: Usuario a crear:", user);
+
+    // Validar si el usuario ya existe por id o por email
+    const existe = this.users.find(
+      (u) => (user.id && u.id === user.id) || u.email === user.email,);
+
+    if (existe) {
+      return {
+        message: "Usuario ya existe",
+      };
+    }
+
+    // Asignar ID si no viene en el body
+    const newUser: User = { ...user, id: user.id || Math.random().toString(36).substring(2, 9), };
+
+    // Agregar el nuevo usuario a la lista (una sola vez)
+    this.users.push(newUser);
+
     return {
       message: "Usuario creado exitosamente",
-      data: user,
-    }
+      data: newUser,
+    };
   }
 
+  @Delete(":id")
+  eliminarUsuario(@Param("id") id: string) {
+    const user = this.users.find((user) => user.id === id);
+    if (user) {
+      this.users = this.users.filter((user) => user.id !== id);
+      return {
+        message: "Usuario eliminado exitosamente",
+      };
+    }
+    return {
+      message: "Usuario no encontrado",
+    };
+  }
+
+  @Put(":id")
+  actualizarUsuario(@Param("id") id: string, @Body() user: Partial<User>) {
+    const userIndex = this.users.findIndex((u) => u.id === id);
+    if (userIndex !== -1) {
+      // Mantener los datos actuales y el ID de la URL
+      const usuarioActualizado: User = {
+        ...this.users[userIndex],
+        ...user,
+        id,
+      };
+
+      this.users[userIndex] = usuarioActualizado;
+
+      return {
+        message: "Usuario actualizado exitosamente",
+        data: usuarioActualizado,
+      };
+    }
+    return {
+      message: "Usuario no encontrado",
+    };
+  }
 }
