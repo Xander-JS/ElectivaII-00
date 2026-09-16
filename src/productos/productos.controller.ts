@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Delete } from '@nestjs/common';
 
 interface Categoria {
     id: number;
@@ -186,5 +186,67 @@ export class ProductosController {
         return this.productos.filter(
             (producto) => producto.categoria.id === idCategoria
         );
+    }
+
+
+    // ==========================================
+    // Crear un producto
+    // POST /productos
+    // ==========================================
+    @Post()
+    crearProducto(@Body() producto: Producto) {
+        const nuevoProducto: Producto = {
+            ...producto,
+            id: Math.random().toString(36).substring(2, 9),
+        };
+        this.productos.push(nuevoProducto);
+        return {
+            message: 'Producto creado exitosamente',
+            data: nuevoProducto,
+        };
+    }
+
+    // ==========================================
+    // Actualizar un producto
+    // PUT /productos/1
+    // ==========================================
+    @Put(':id')
+    actualizarProducto(@Param('id') id: string, @Body() producto: Partial<Producto>) {
+        const productoIndex = this.productos.findIndex(
+            (producto) => producto.id === id
+        );
+        if (productoIndex !== -1) {
+            const productoActualizado: Producto = {
+                ...this.productos[productoIndex],
+                ...producto,
+                id,
+            };
+            this.productos[productoIndex] = productoActualizado;
+            return {
+                message: 'Producto actualizado exitosamente',
+                data: productoActualizado,
+            };
+        }
+        return {
+            message: 'Producto no encontrado',
+        };
+    }
+
+    // ==========================================
+    // Eliminar un producto
+    // DELETE /productos/1
+    // ==========================================
+    @Delete(':id')
+    eliminarProducto(@Param('id') id: string) {
+        const producto = this.productos.find((producto) => producto.id === id);
+        if (producto) {
+            this.productos = this.productos.filter((producto) => producto.id !== id);
+            return {
+                message: 'Producto eliminado exitosamente',
+            };
+        }
+        return {
+            message: 'Producto no encontrado',
+        };
     }
 }
